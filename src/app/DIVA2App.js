@@ -1037,19 +1037,42 @@ export default function DIVA2App() {
       next[category] = [...prev[category]];
       const arr = [...prev[category][idx][ageField]];
       arr[exIdx] = !arr[exIdx];
-      next[category][idx] = { ...prev[category][idx], [ageField]: arr };
+      const updated = { ...prev[category][idx], [ageField]: arr };
+
+      // Auto-set present when majority checked
+      const presentField = ageField === "adultChecked" ? "adultPresent" : "childPresent";
+      const checkedCount = arr.filter(Boolean).length;
+      const total = arr.length;
+      if (checkedCount > total / 2) {
+        updated[presentField] = true;
+      } else if (checkedCount === 0 && updated[presentField] === true) {
+        updated[presentField] = null;
+      }
+
+      next[category][idx] = updated;
       return next;
     });
   }, []);
 
   const toggleImpairment = useCallback((age, domain, idx) => {
     setState((prev) => {
-      const key = age === "adult" ? "impairmentAdult" : "impairmentChild";
+      const checkKey = age === "adult" ? "impairmentAdult" : "impairmentChild";
+      const presentKey = age === "adult" ? "impairmentAdultPresent" : "impairmentChildPresent";
       const next = { ...prev };
-      next[key] = { ...prev[key] };
-      const arr = [...prev[key][domain]];
+      next[checkKey] = { ...prev[checkKey] };
+      const arr = [...prev[checkKey][domain]];
       arr[idx] = !arr[idx];
-      next[key][domain] = arr;
+      next[checkKey][domain] = arr;
+
+      // Auto-set domain present if any example checked
+      next[presentKey] = { ...prev[presentKey] };
+      const anyChecked = arr.some(Boolean);
+      if (anyChecked) {
+        next[presentKey][domain] = true;
+      } else if (!anyChecked && prev[presentKey][domain] === true) {
+        next[presentKey][domain] = null;
+      }
+
       return next;
     });
   }, []);
