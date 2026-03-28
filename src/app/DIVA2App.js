@@ -814,30 +814,84 @@ function SymptomCard({
   );
 }
 
-function ImpairmentDomain({ domain, checked, onToggle }) {
+function ImpairmentDomain({ domain, checked, onToggle, domainPresent, onSetDomainPresent }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasAnyChecked = checked.some(Boolean);
   return (
-    <div style={{ marginBottom: 16 }}>
-      <div
+    <div style={{ marginBottom: 14 }}>
+      <button
+        onClick={() => setExpanded(!expanded)}
         style={{
-          fontSize: 13,
-          fontWeight: 700,
-          color: "#374151",
-          marginBottom: 6,
-          paddingBottom: 4,
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "10px 0",
+          background: "none",
+          border: "none",
           borderBottom: "1px solid #e5e7eb",
+          cursor: "pointer",
+          textAlign: "left",
         }}
       >
-        {domain.label}
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {domain.items.map((item, i) => (
-          <CheckboxItem
-            key={i}
-            label={item}
-            checked={checked[i] || false}
-            onChange={() => onToggle(i)}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              background: domainPresent === true ? "#22c55e" : domainPresent === false ? "#ef4444" : "#d1d5db",
+              flexShrink: 0,
+            }}
           />
-        ))}
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#374151" }}>
+            {domain.label}
+          </span>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"
+          style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", minWidth: 16 }}>
+          <path d="M5 7.5L10 12.5L15 7.5" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      {expanded && (
+        <div style={{ paddingTop: 8 }}>
+          <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 6, lineHeight: 1.4 }}>
+            Cochez les exemples qui vous correspondent (facultatif) :
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {domain.items.map((item, i) => (
+              <CheckboxItem
+                key={i}
+                label={item}
+                checked={checked[i] || false}
+                onChange={() => onToggle(i)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+        <span style={{ fontSize: 12, color: "#6b7280" }}>Domaine impacté :</span>
+        <button
+          onClick={() => onSetDomainPresent(true)}
+          style={{
+            padding: "4px 14px", borderRadius: 20, border: "none", fontSize: 12, fontWeight: 600, cursor: "pointer",
+            background: domainPresent === true ? "#22c55e" : "#f3f4f6",
+            color: domainPresent === true ? "#fff" : "#6b7280",
+            transition: "all 0.15s",
+          }}
+        >Oui</button>
+        <button
+          onClick={() => onSetDomainPresent(false)}
+          style={{
+            padding: "4px 14px", borderRadius: 20, border: "none", fontSize: 12, fontWeight: 600, cursor: "pointer",
+            background: domainPresent === false ? "#ef4444" : "#f3f4f6",
+            color: domainPresent === false ? "#fff" : "#6b7280",
+            transition: "all 0.15s",
+          }}
+        >Non</button>
       </div>
     </div>
   );
@@ -919,6 +973,12 @@ function getDefaultState() {
         new Array(IMPAIRMENT_DOMAINS.child[k].items.length).fill(false),
       ])
     ),
+    impairmentAdultPresent: Object.fromEntries(
+      Object.keys(IMPAIRMENT_DOMAINS.adult).map((k) => [k, null])
+    ),
+    impairmentChildPresent: Object.fromEntries(
+      Object.keys(IMPAIRMENT_DOMAINS.child).map((k) => [k, null])
+    ),
     onsetBefore7: null,
     onsetAge: "",
     criterionE: null,
@@ -936,7 +996,20 @@ export default function DIVA2App() {
   // Hydrate from localStorage after mount
   useEffect(() => {
     const saved = loadState();
-    if (saved) setState(saved);
+    if (saved) {
+      // Migrate old state that may lack new domain-present keys
+      if (!saved.impairmentAdultPresent) {
+        saved.impairmentAdultPresent = Object.fromEntries(
+          Object.keys(IMPAIRMENT_DOMAINS.adult).map((k) => [k, null])
+        );
+      }
+      if (!saved.impairmentChildPresent) {
+        saved.impairmentChildPresent = Object.fromEntries(
+          Object.keys(IMPAIRMENT_DOMAINS.child).map((k) => [k, null])
+        );
+      }
+      setState(saved);
+    }
     setHydrated(true);
   }, []);
 
@@ -981,17 +1054,26 @@ export default function DIVA2App() {
     });
   }, []);
 
+  const setDomainPresent = useCallback((age, domain, value) => {
+    setState((prev) => {
+      const key = age === "adult" ? "impairmentAdultPresent" : "impairmentChildPresent";
+      const next = { ...prev };
+      next[key] = { ...prev[key], [domain]: value };
+      return next;
+    });
+  }, []);
+
   // Scoring
   const aAdult = state.inattention.filter((s) => s.adultPresent === true).length;
   const aChild = state.inattention.filter((s) => s.childPresent === true).length;
   const hiAdult = state.hyperactivity.filter((s) => s.adultPresent === true).length;
   const hiChild = state.hyperactivity.filter((s) => s.childPresent === true).length;
 
-  const adultImpairmentDomains = Object.values(state.impairmentAdult).filter(
-    (arr) => arr.some(Boolean)
+  const adultImpairmentDomains = Object.keys(IMPAIRMENT_DOMAINS.adult).filter(
+    (k) => (state.impairmentAdultPresent || {})[k] === true
   ).length;
-  const childImpairmentDomains = Object.values(state.impairmentChild).filter(
-    (arr) => arr.some(Boolean)
+  const childImpairmentDomains = Object.keys(IMPAIRMENT_DOMAINS.child).filter(
+    (k) => (state.impairmentChildPresent || {})[k] === true
   ).length;
 
   const aCriterionMet = aAdult >= 6 && aChild >= 6;
@@ -1369,6 +1451,8 @@ export default function DIVA2App() {
                   domain={domain}
                   checked={state.impairmentAdult[key]}
                   onToggle={(i) => toggleImpairment("adult", key, i)}
+                  domainPresent={(state.impairmentAdultPresent || {})[key]}
+                  onSetDomainPresent={(v) => setDomainPresent("adult", key, v)}
                 />
               ))}
             </div>
@@ -1410,6 +1494,8 @@ export default function DIVA2App() {
                   domain={domain}
                   checked={state.impairmentChild[key]}
                   onToggle={(i) => toggleImpairment("child", key, i)}
+                  domainPresent={(state.impairmentChildPresent || {})[key]}
+                  onSetDomainPresent={(v) => setDomainPresent("child", key, v)}
                 />
               ))}
             </div>
