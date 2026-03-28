@@ -1819,12 +1819,12 @@ export default function DIVA2App() {
                 },
                 {
                   label:
-                    "Critère C : Retentissement ≥ 2 domaines (adulte)",
+                    "Critères C/D : Retentissement ≥ 2 domaines (adulte)",
                   met: adultImpairmentDomains >= 2,
                 },
                 {
                   label:
-                    "Critère C : Retentissement ≥ 2 domaines (enfance)",
+                    "Critères C/D : Retentissement ≥ 2 domaines (enfance)",
                   met: childImpairmentDomains >= 2,
                 },
                 {
@@ -1933,7 +1933,7 @@ export default function DIVA2App() {
                     }}
                   >
                     {(aCriterionMet || hiCriterionMet) && !impairmentMet
-                      ? "Critères symptomatiques atteints — compléter le retentissement"
+                      ? "Critères symptomatiques atteints — retentissement insuffisant"
                       : state.criterionE === true
                       ? "Symptômes mieux expliqués par un autre trouble"
                       : "Critères diagnostiques non remplis"}
@@ -1944,9 +1944,13 @@ export default function DIVA2App() {
                     {!aCriterionMet && !hiCriterionMet
                       ? "Le seuil de 6 symptômes n'est pas atteint dans aucun domaine pour les deux âges de vie."
                       : !impairmentMet
-                      ? "Complétez la section Retentissement pour valider les critères C et D."
+                      ? adultImpairmentDomains < 2 && childImpairmentDomains < 2
+                        ? `Indiquez « Domaine impacté : Oui » dans au moins 2 domaines pour l'âge adulte (${adultImpairmentDomains}/2) et l'enfance (${childImpairmentDomains}/2) dans l'onglet Retentissement.`
+                        : adultImpairmentDomains < 2
+                        ? `Retentissement adulte insuffisant (${adultImpairmentDomains}/2 domaines). Indiquez « Domaine impacté : Oui » dans au moins 2 domaines.`
+                        : `Retentissement enfance insuffisant (${childImpairmentDomains}/2 domaines). Indiquez « Domaine impacté : Oui » dans au moins 2 domaines.`
                       : state.criterionE === null
-                      ? "Complétez le critère E (diagnostic différentiel)."
+                      ? "Complétez le critère E (diagnostic différentiel) dans l'onglet Retentissement."
                       : ""}
                   </div>
                 </>
