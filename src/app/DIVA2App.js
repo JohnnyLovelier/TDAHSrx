@@ -1099,6 +1099,15 @@ export default function DIVA2App() {
     (k) => (state.impairmentChildPresent || {})[k] === true
   ).length;
 
+  // Check if user has answered all domain toggles (not left at null)
+  const adultImpairmentAnswered = Object.keys(IMPAIRMENT_DOMAINS.adult).every(
+    (k) => (state.impairmentAdultPresent || {})[k] !== null && (state.impairmentAdultPresent || {})[k] !== undefined
+  );
+  const childImpairmentAnswered = Object.keys(IMPAIRMENT_DOMAINS.child).every(
+    (k) => (state.impairmentChildPresent || {})[k] !== null && (state.impairmentChildPresent || {})[k] !== undefined
+  );
+  const impairmentFullyAnswered = adultImpairmentAnswered && childImpairmentAnswered;
+
   const aCriterionMet = aAdult >= 6 && aChild >= 6;
   const hiCriterionMet = hiAdult >= 6 && hiChild >= 6;
   const impairmentMet = adultImpairmentDomains >= 2 && childImpairmentDomains >= 2;
@@ -1932,23 +1941,25 @@ export default function DIVA2App() {
                       marginBottom: 8,
                     }}
                   >
-                    {(aCriterionMet || hiCriterionMet) && !impairmentMet
-                      ? "Critères symptomatiques atteints — retentissement insuffisant"
+                    {(aCriterionMet || hiCriterionMet) && !impairmentMet && !impairmentFullyAnswered
+                      ? "Critères symptomatiques atteints — complétez le retentissement"
+                      : (aCriterionMet || hiCriterionMet) && !impairmentMet && impairmentFullyAnswered
+                      ? "Diagnostic TDAH non retenu"
                       : state.criterionE === true
-                      ? "Symptômes mieux expliqués par un autre trouble"
-                      : "Critères diagnostiques non remplis"}
+                      ? "Diagnostic TDAH non retenu"
+                      : "Diagnostic TDAH non retenu"}
                   </div>
                   <div
                     style={{ fontSize: 12, color: "#9ca3af", lineHeight: 1.5 }}
                   >
                     {!aCriterionMet && !hiCriterionMet
                       ? "Le seuil de 6 symptômes n'est pas atteint dans aucun domaine pour les deux âges de vie."
-                      : !impairmentMet
-                      ? adultImpairmentDomains < 2 && childImpairmentDomains < 2
-                        ? `Indiquez « Domaine impacté : Oui » dans au moins 2 domaines pour l'âge adulte (${adultImpairmentDomains}/2) et l'enfance (${childImpairmentDomains}/2) dans l'onglet Retentissement.`
-                        : adultImpairmentDomains < 2
-                        ? `Retentissement adulte insuffisant (${adultImpairmentDomains}/2 domaines). Indiquez « Domaine impacté : Oui » dans au moins 2 domaines.`
-                        : `Retentissement enfance insuffisant (${childImpairmentDomains}/2 domaines). Indiquez « Domaine impacté : Oui » dans au moins 2 domaines.`
+                      : !impairmentMet && !impairmentFullyAnswered
+                      ? "Répondez « Oui » ou « Non » pour chaque domaine de retentissement dans l'onglet Retentissement."
+                      : !impairmentMet && impairmentFullyAnswered
+                      ? "Les critères symptomatiques sont atteints, mais le retentissement n'est pas présent dans au moins 2 domaines de vie aux deux âges."
+                      : state.criterionE === true
+                      ? `Les symptômes sont mieux expliqués par un autre trouble${state.criterionEDetail ? ` (${state.criterionEDetail})` : ""}.`
                       : state.criterionE === null
                       ? "Complétez le critère E (diagnostic différentiel) dans l'onglet Retentissement."
                       : ""}
