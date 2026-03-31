@@ -1250,6 +1250,19 @@ export default function DIVA2App() {
             </div>
           ))}
         </div>
+
+        <div style={{
+          marginTop: 16,
+          padding: "10px 14px",
+          background: "rgba(255,255,255,0.08)",
+          borderRadius: 10,
+          fontSize: 11,
+          lineHeight: 1.5,
+          color: "rgba(255,255,255,0.6)",
+          borderLeft: "3px solid rgba(255,255,255,0.2)",
+        }}>
+          ⚠️ Cet outil est une aide à la passation de la DIVA 2.0 et ne remplace pas le jugement clinique d'un professionnel de santé qualifié. Le diagnostic de TDAH doit être posé par un clinicien formé, en prenant en compte l'ensemble du tableau clinique.
+        </div>
       </div>
 
       {/* ── Tabs ── */}
@@ -1338,10 +1351,7 @@ export default function DIVA2App() {
                 lineHeight: 1.5,
               }}
             >
-              Appuyez sur chaque critère pour l'ouvrir. Cochez les exemples
-              reconnus, puis indiquez si le symptôme est présent (
-              <strong>Oui</strong> / <strong>Non</strong>) pour l'âge adulte et
-              l'enfance.
+              Touchez chaque critère pour le déplier. Cochez les exemples reconnus, puis indiquez si le symptôme est présent (<strong>Oui</strong> / <strong>Non</strong>) à l'âge adulte et durant l'enfance. Lorsque la majorité des exemples est cochée, « Oui » est défini automatiquement (vous pouvez toujours le modifier).
             </div>
 
             {symptomItems.map((item, idx) => (
@@ -1372,6 +1382,20 @@ export default function DIVA2App() {
         {/* ══ SECTION 1 — Impairment ══ */}
         {section === 1 && (
           <>
+            <div
+              style={{
+                fontSize: 12,
+                color: "#6b7280",
+                marginBottom: 14,
+                padding: "10px 14px",
+                background: "#f9fafb",
+                borderRadius: 10,
+                lineHeight: 1.5,
+              }}
+            >
+              Pour chaque domaine, indiquez s'il est impacté via <strong>Oui</strong> / <strong>Non</strong>. Les exemples sont facultatifs, dépliez-les si besoin.
+            </div>
+
             {/* Criterion B */}
             <div
               style={{
@@ -1465,7 +1489,7 @@ export default function DIVA2App() {
                   marginBottom: 4,
                 }}
               >
-                Critère C — Retentissement à l'âge adulte
+                Critères C/D — Retentissement à l'âge adulte
               </div>
               <div
                 style={{
@@ -1475,7 +1499,7 @@ export default function DIVA2App() {
                   marginBottom: 14,
                 }}
               >
-                {adultImpairmentDomains}/5 domaines atteints (≥ 2 requis)
+                {adultImpairmentDomains}/5 domaines impactés (≥ 2 requis)
               </div>
               {Object.entries(IMPAIRMENT_DOMAINS.adult).map(([key, domain]) => (
                 <ImpairmentDomain
@@ -1508,7 +1532,7 @@ export default function DIVA2App() {
                   marginBottom: 4,
                 }}
               >
-                Critère C — Retentissement dans l'enfance
+                Critères C/D — Retentissement dans l'enfance
               </div>
               <div
                 style={{
@@ -1518,7 +1542,7 @@ export default function DIVA2App() {
                   marginBottom: 14,
                 }}
               >
-                {childImpairmentDomains}/5 domaines atteints (≥ 2 requis)
+                {childImpairmentDomains}/5 domaines impactés (≥ 2 requis)
               </div>
               {Object.entries(IMPAIRMENT_DOMAINS.child).map(([key, domain]) => (
                 <ImpairmentDomain
